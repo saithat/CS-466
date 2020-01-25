@@ -314,8 +314,22 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
+  /*
+  111 - 1
+  101 - 1
+  011 - 1
+  100 - 1
+  010 - 1
+  000 - 1
+
+  110 - 0
+  001 - 0
+  */
   int sum = x + y;
-  return !!(sum);
+  int x_sign = !(x >> 31); // 1 if posostive
+  int y_sign = !(y >> 31); // 0 if negative
+  int sum_sign = !(sum >> 31);
+  return (x_sign ^ y_sign) | !(x_sign ^ sum_sign);
   
 }
 /* 
@@ -327,7 +341,7 @@ int addOK(int x, int y) {
  *   Rating: 4
  */
 int absVal(int x) {
-  return 2;
+  return ((x ^ (x >> 31))) + (1 & (x >> 31));
 }
 /* 
  * isNonZero - Check whether x is nonzero using
@@ -338,7 +352,8 @@ int absVal(int x) {
  *   Rating: 4 
  */
 int isNonZero(int x) {
-  return 2;
+  int comp = ~x + 1;
+  return ((x >> 31) | (comp >> 31)) & 1;
 }
 /* 
  * byteSwap - swaps the nth byte and the mth byte
@@ -350,7 +365,16 @@ int isNonZero(int x) {
  *  Rating: 2
  */
 int byteSwap(int x, int n, int m) {
-    return 2;
+  //shift = n*2*4
+  int n_shift = n<<3; //n*8
+  int m_shift = m<<3; //m*8
+  int m_val = (x >> m_shift) & 0xff;
+  int n_val = (x >> n_shift) & 0xff;
+  int mask = (m_val << n_shift) | (n_val << m_shift);
+  int new_x = ~(0xff << m_shift) & x;
+  new_x = ~(0xff << n_shift) & new_x;
+
+  return new_x | mask;
 }
 /* 
  * bitMask - Generate a mask consisting of all 1's 
@@ -363,5 +387,6 @@ int byteSwap(int x, int n, int m) {
  *   Rating: 3
  */
 int bitMask(int highbit, int lowbit) {
-  return 2;
+  int mask = ~0;
+  return (((~(mask << (highbit)))<<1)+1) & (mask << lowbit);
 }
