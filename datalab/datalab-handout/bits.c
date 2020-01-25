@@ -179,6 +179,7 @@ NOTES:
  *   Rating: 1
  */
 int bitAnd(int x, int y) {
+  //equivalent truth table to AND
   return ~(~x | ~y);
 }
 /* 
@@ -189,6 +190,7 @@ int bitAnd(int x, int y) {
  *   Rating: 1
  */
 int bitNor(int x, int y) {
+  //equivalent truth table to NOR
   return (~x & ~y);
 }
 /* 
@@ -199,6 +201,7 @@ int bitNor(int x, int y) {
  *   Rating: 2
  */
 int copyLSB(int x) {
+  //takes advantage of arithmentic right shifting
   return (x << 31) >> 31;
 }
 /* 
@@ -208,6 +211,8 @@ int copyLSB(int x) {
  *   Rating: 1
  */
 int evenBits(void) {
+  //word is an int, but can only use constants up to 0xff, so shifting and ORing allows
+  //using doubleing size of new expr
   int expr = 0x55;
   expr = (expr << 8) | expr;
   expr = (expr << 16) | expr;
@@ -222,6 +227,8 @@ int evenBits(void) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
+  // shift to get get x and extra 1s in right position
+  // create 1s from left end to 1-n to preserve the MSB when ANDing
   int expr = (x >> n);
   int comp = ~(((1 << 31) >> n) << 1);
   
@@ -247,6 +254,8 @@ int bang(int x) {
  *   Rating: 2 
  */
 int leastBitPos(int x) {
+  //adding 1 to the inverse turns the LS 1 bit on so ANDing with the orignal would
+  //just get rid of everything else
   return x & (~x + 1);
 }
 /* 
@@ -257,6 +266,7 @@ int leastBitPos(int x) {
  *   Rating: 2
  */
 int isNotEqual(int x, int y) {
+  //when's its equal, XORing returns 0
   return !!(x ^ y);
 }
 /* 
@@ -267,6 +277,7 @@ int isNotEqual(int x, int y) {
  *   Rating: 2
  */
 int negate(int x) {
+  //twos complement
   return ~x + 1;
 }
 /* 
@@ -277,6 +288,8 @@ int negate(int x) {
  *   Rating: 2
  */
 int isPositive(int x) {
+  // shift x and use bang to find out if the sign bit is posotive or negative
+  // the xor is for when x is 0
   return !(x >> 31) ^ !x;
 }
 /* 
@@ -287,6 +300,7 @@ int isPositive(int x) {
  *   Rating: 2
  */
 int isNonNegative(int x) {
+  // shift x and use bang to find out if the sign bit is posotive or negative
   return !(x >> 31);
 }
 /* 
@@ -299,6 +313,9 @@ int isNonNegative(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
+  //checks if number is less than 64, and then pattern matches some bits like
+  //the second triplet from right and checks if number is 8 or 9 because it doesn't
+  //follow the same pattern
   int six_iso = x & 0x3f;
   int less_than = !(x >> 6); //1 if less than 64
   int sec_triplet = !((x& 0x38) ^ 0x30);
@@ -315,6 +332,7 @@ int isAsciiDigit(int x) {
  */
 int addOK(int x, int y) {
   /*
+  checks signs
   111 - 1
   101 - 1
   011 - 1
@@ -341,6 +359,8 @@ int addOK(int x, int y) {
  *   Rating: 4
  */
 int absVal(int x) {
+  //kinda does the twos complement when it's negative
+  //the right side only adds one if it's negative number
   return ((x ^ (x >> 31))) + (1 & (x >> 31));
 }
 /* 
@@ -352,6 +372,8 @@ int absVal(int x) {
  *   Rating: 4 
  */
 int isNonZero(int x) {
+  //comparing signs with twos complements because only 0's complement
+  //is the same sign
   int comp = ~x + 1;
   return ((x >> 31) | (comp >> 31)) & 1;
 }
@@ -365,6 +387,8 @@ int isNonZero(int x) {
  *  Rating: 2
  */
 int byteSwap(int x, int n, int m) {
+  //creates a mask with n and m bits in each other's place
+  //and removes those positions from x so it can be ORed
   //shift = n*2*4
   int n_shift = n<<3; //n*8
   int m_shift = m<<3; //m*8
@@ -387,6 +411,9 @@ int byteSwap(int x, int n, int m) {
  *   Rating: 3
  */
 int bitMask(int highbit, int lowbit) {
+  //shifts mask, inverts, and shifts by 1 again if incase
+  //highbit is 31 since shifting by highbit+1 (32) has undefined
+  //behavior.
   int mask = ~0;
-  return (((~(mask << (highbit)))<<1)+1) & (mask << lowbit);
+  return (((~(mask << highbit))<<1)+1) & (mask << lowbit);
 }
