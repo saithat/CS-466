@@ -189,7 +189,7 @@ int bitAnd(int x, int y) {
  *   Rating: 1
  */
 int bitNor(int x, int y) {
-  return 2;
+  return (~x & ~y);
 }
 /* 
  * copyLSB - set all bits of result to least significant bit of x
@@ -199,7 +199,7 @@ int bitNor(int x, int y) {
  *   Rating: 2
  */
 int copyLSB(int x) {
-  return 2;
+  return (x << 31) >> 31;
 }
 /* 
  * evenBits - return word with all even-numbered bits set to 1
@@ -208,7 +208,10 @@ int copyLSB(int x) {
  *   Rating: 1
  */
 int evenBits(void) {
-  return 2;
+  int expr = 0x55;
+  expr = (expr << 8) | expr;
+  expr = (expr << 16) | expr;
+  return expr;
 }
 /* 
  * logicalShift - shift x to the right by n, using a logical shift
@@ -219,7 +222,10 @@ int evenBits(void) {
  *   Rating: 3 
  */
 int logicalShift(int x, int n) {
-  return 2;
+  int expr = (x >> n);
+  int comp = ~(((1 << 31) >> n) << 1);
+  
+  return expr & comp;
 }
 /* 
  * bang - Compute !x without using !
@@ -229,7 +235,8 @@ int logicalShift(int x, int n) {
  *   Rating: 4 
  */
 int bang(int x) {
-  return 2;
+  /*ORs a negative and posotive version of x and adds 1s for overflow*/
+  return ((x >> 31) | ((~x + 1) >> 31)) + 1;
 }
 /* 
  * leastBitPos - return a mask that marks the position of the
@@ -240,7 +247,7 @@ int bang(int x) {
  *   Rating: 2 
  */
 int leastBitPos(int x) {
-  return 2;
+  return x & (~x + 1);
 }
 /* 
  * isNotEqual - return 0 if x == y, and 1 otherwise 
@@ -250,7 +257,7 @@ int leastBitPos(int x) {
  *   Rating: 2
  */
 int isNotEqual(int x, int y) {
-  return 2;
+  return !!(x ^ y);
 }
 /* 
  * negate - return -x 
@@ -260,7 +267,7 @@ int isNotEqual(int x, int y) {
  *   Rating: 2
  */
 int negate(int x) {
-  return 2;
+  return ~x + 1;
 }
 /* 
  * isPositive - return 1 if x > 0, return 0 otherwise 
@@ -270,7 +277,7 @@ int negate(int x) {
  *   Rating: 2
  */
 int isPositive(int x) {
-  return 2;
+  return !(x >> 31) ^ !x;
 }
 /* 
  * isNonNegative - return 1 if x >= 0, return 0 otherwise 
@@ -280,7 +287,7 @@ int isPositive(int x) {
  *   Rating: 2
  */
 int isNonNegative(int x) {
-  return 2;
+  return !(x >> 31);
 }
 /* 
  * isAsciiDigit - return 1 if 0x30 <= x <= 0x39 (ASCII codes for characters '0' to '9')
@@ -292,7 +299,11 @@ int isNonNegative(int x) {
  *   Rating: 3
  */
 int isAsciiDigit(int x) {
-  return 2;
+  int six_iso = x & 0x3f;
+  int less_than = !(x >> 6); //1 if less than 64
+  int sec_triplet = !((x& 0x38) ^ 0x30);
+  int eight_nine = !(six_iso ^ 0x38) | !(six_iso ^ 0x39);
+  return (sec_triplet | eight_nine) & less_than;
 }
 /* 
  * addOK - Determine if can compute x+y without overflow
@@ -303,7 +314,9 @@ int isAsciiDigit(int x) {
  *   Rating: 3
  */
 int addOK(int x, int y) {
-  return 2;
+  int sum = x + y;
+  return !!(sum);
+  
 }
 /* 
  * absVal - absolute value of x
